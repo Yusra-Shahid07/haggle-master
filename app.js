@@ -54,7 +54,7 @@ const BUY_ITEMS = [
   {
     key: "mangoes",
     emoji: "🥭",
-    label: "Mangoes (1kg)",
+    label: "Mangoes ",
     range: [150, 280],
     counterpart: "Shopkeeper",
   },
@@ -575,7 +575,16 @@ function showScreen(id) {
   document
     .querySelectorAll(".screen")
     .forEach((s) => s.classList.remove("active"));
-  document.getElementById("screen-" + id).classList.add("active");
+  const target = document.getElementById("screen-" + id);
+  target.classList.add("active");
+
+  // naya screen hamesha top se open ho, chahe pichli screen ya
+  // is screen ka last scroll position kahin bhi tha
+  target.scrollTop = 0;
+  requestAnimationFrame(() => {
+    target.scrollTop = 0;
+  });
+
   document.getElementById("backBtn").style.display =
     id === "home" ? "none" : "block";
   document.getElementById("histBtnTop").style.display =
@@ -669,10 +678,10 @@ function startNegotiation() {
   state.walked = false;
 
   renderNegotiateStatic();
-  const opening = pickDirLine("opening", state.personality)
-    .replace("{item}", state.itemLabel)
-    .replace("{price}", state.currentPrice);
-  pushLog("shop", opening);
+ const opening = pickDirLine("opening", state.personality)
+  .replace("{item}", state.itemLabel)
+  .replace("{price}", state.currentPrice);
+pushLog("shop", opening, true);  
 
   // reset voice state for the fresh round
   voiceBuffer = "";
@@ -699,6 +708,7 @@ function startNegotiation() {
     document.getElementById("voiceModePanel").style.display = "block";
     const vtd = document.getElementById("voiceTranscriptDisplay");
     vtd.value = "";
+    vtd.setAttribute("readonly", true);
     setupSpeechRecognition();
   } else {
     document.getElementById("textModePanel").style.display = "block";
@@ -738,7 +748,7 @@ function pickFlatLine(bank, personality) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function pushLog(who, text) {
+function pushLog(who, text, skipScroll) {
   state.log.push({ who, text });
   const t = document.getElementById("transcript");
   const div = document.createElement("div");
@@ -746,14 +756,15 @@ function pushLog(who, text) {
   div.textContent = text;
   t.appendChild(div);
 
-  const screen = document.getElementById("screen-negotiate");
-  setTimeout(() => {
-    screen.scrollTop = screen.scrollHeight;
-  }, 10);
+  if (!skipScroll) {
+    const screen = document.getElementById("screen-negotiate");
+    setTimeout(() => {
+      screen.scrollTop = screen.scrollHeight;
+    }, 10);
+  }
 
   if (who === "shop") document.getElementById("shopBubble").textContent = text;
 }
-
 function renderRoundUI() {
   const suffix = isBuy() ? "their ask" : "their offer";
   document.getElementById("priceLabel").innerHTML =
@@ -1134,10 +1145,10 @@ function setupSpeechRecognition() {
 
 function focusTranscriptBox() {
   const box = document.getElementById("voiceTranscriptDisplay");
+  box.removeAttribute("readonly");
   box.focus();
   box.select();
 }
-
 function toggleListening() {
   if (!recognition) {
     setupSpeechRecognition();
@@ -1163,13 +1174,11 @@ function toggleListening() {
 }
 
 function retryListening() {
-  // recognition ko chalu rehne dete hain, sirf jo ab tak (galat) sun liya
-  // tha ya likha gaya tha usay mita kar dobara se sunna shuru karte hain
   voiceBuffer = "";
   lastInterim = "";
   const box = document.getElementById("voiceTranscriptDisplay");
   box.value = "";
-  box.focus();
+  box.blur();
 }
 
 function doneListening() {
