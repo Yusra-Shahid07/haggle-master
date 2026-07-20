@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Haggle Master 🤝</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Mukta:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+
+  <div class="signboard">
+    <button class="back-btn" id="backBtn" onclick="goHome()">← Home</button>
+    <button class="hist-btn" id="histBtnTop" onclick="showScreen('history')">History</button>
+    <h1>Haggle Master</h1>
+    <p class="tagline">Practice your negotiation skills before the real deal!</p>
+    <div class="bunting" id="signboardBunting"></div>
+  </div>
+
+  <!-- HOME / SCENARIO SELECT -->
+  <div class="screen active" id="screen-home">
+    <h2 class="section-title">What are you negotiating?</h2>
+    <p class="section-sub">Bargaining isn't just for shopping — pick a category to start.</p>
+
+    <div class="section-card">
+      <div class="toggle-row" id="dirToggle">
+        <div class="toggle-opt selected" id="dirOptBuy"><span class="icon">🛍️</span><b>Buying Something</b><span>Haggle down a price</span></div>
+        <div class="toggle-opt" id="dirOptEarn"><span class="icon">💼</span><b>Earning Something</b><span>Negotiate salary / rate</span></div>
+      </div>
+    </div>
+
+    <div class="divider-label" id="itemGridHeading">Pick a scenario</div>
+    <div class="item-grid" id="itemGrid"></div>
+    <div class="custom-item-wrap">
+      <label id="customItemLabel">Or type something else</label>
+      <input type="text" id="customItemInput" placeholder="Type here...">
+    </div>
+    <button class="primary-btn" id="toSetupBtn" onclick="goToSetup()" disabled>Continue →</button>
+  </div>
+
+  <!-- SETUP: personality + mode -->
+  <div class="screen" id="screen-setup">
+    <h2 class="section-title">Who are you negotiating with?</h2>
+    <p class="section-sub">Everyone has their own negotiating style — pick wisely!</p>
+    <div class="pers-grid" id="persGrid"></div>
+
+    <h2 class="section-title">How do you want to practice?</h2>
+    <p class="section-sub">Voice mode is closer to a real conversation!</p>
+    <div class="toggle-row" id="modeToggle"></div>
+
+    <button class="primary-btn" onclick="startNegotiation()" id="enterBazaarBtn">Start Negotiating 🤝</button>
+  </div>
+
+  <!-- NEGOTIATE -->
+  <div class="screen" id="screen-negotiate">
+    <div class="round-tracker" id="roundTracker"></div>
+
+    <div class="stall">
+      <div class="stall-top">
+        <div class="shopkeeper-avatar" id="shopAvatar"></div>
+        <div style="flex:1;">
+          <p class="stall-name" id="shopName">Negotiator</p>
+          <p class="stall-role" id="shopRole">...</p>
+          <div class="bubble" id="shopBubble">...</div>
+        </div>
+      </div>
+      <div class="item-price-row">
+        <span class="item-tag" id="itemLabel">Item</span>
+        <span class="price-tag" id="priceLabel">0<small>—</small></span>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <span class="round-label" id="roundLabel">Round 1 / 5</span>
+      <button class="hint-btn" onclick="showHint()">Hint</button>
+    </div>
+
+    <div class="transcript" id="transcript"></div>
+
+    <div class="suggest-row" id="suggestRow"></div>
+
+    <div id="textModePanel">
+      <div class="input-row">
+        <input type="text" id="offerInput" placeholder="Type your offer (e.g. 'I can give 900')" onkeydown="if(event.key==='Enter')submitOffer()">
+        <button class="send-btn" onclick="submitOffer()">Send</button>
+      </div>
+    </div>
+
+    <div id="voiceModePanel" style="display:none;">
+      <div class="voice-panel">
+        <span class="listening-tag" id="listeningTag"><span class="dot"></span>Listening…</span>
+        <div class="mic-stage" id="micStage">
+          <div class="ring1"></div>
+          <div class="ring2"></div>
+          <button class="mic-btn" id="micBtn" onclick="toggleListening()">🎤</button>
+        </div>
+        <div class="transcript-wrap">
+          <textarea class="live-transcript-box" id="voiceTranscriptDisplay" rows="2" placeholder="Tap the mic to speak your offer..."></textarea>
+          <button type="button" class="edit-icon-btn" id="editIconBtn" onclick="focusTranscriptBox()" title="Edit">Edit</button>
+        </div>
+        <p class="edit-hint">Didn't catch it right? Tap the box or the Edit button above to fix it.</p>
+        <div class="voice-actions-row" id="voiceActionsRow">
+          <button class="ghost-btn" id="retryBtn" onclick="retryListening()">Clear &amp; Retry</button>
+          <button class="primary-btn secondary" id="doneBtn" onclick="doneListening()">Done, Send Offer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen" id="screen-result">
+    <div class="result-badge-wrap">
+      <span class="badge-emoji" id="resultEmoji">🏆</span>
+      <div class="badge-name" id="resultBadgeName">Badge</div>
+      <span class="mode-pill" id="resultModePill">TEXT MODE</span>
+    </div>
+    <div class="savings-box">
+      <div class="savings-num" id="savingsNum">0%</div>
+      <div class="savings-sub" id="savingsSub">saved off the opening price</div>
+      <div class="result-stats">
+        <div><b id="statAsking">-</b>Opening Number</div>
+        <div><b id="statFinal">-</b>Final Deal</div>
+        <div><b id="statRounds">-</b>Rounds</div>
+      </div>
+    </div>
+    <div class="mode-note" id="modeNote"></div>
+    <div class="result-actions">
+      <button class="primary-btn" onclick="goToSetupSameItem()">Try Again (New Round)</button>
+      <button class="primary-btn secondary" onclick="showScreen('history')">View History</button>
+      <button class="ghost-btn" onclick="goHome()">New Scenario</button>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="screen" id="screen-history">
+    <h2 class="section-title">Your Negotiation History</h2>
+    <p class="section-sub">Every attempt is saved here so you can track your progress.</p>
+    <div class="hist-list" id="histList"></div>
+    <div style="margin-top:16px; display:flex; gap:10px;">
+      <button class="ghost-btn" style="flex:1;" onclick="clearHistory()">Clear History</button>
+      <button class="primary-btn" style="flex:1;" onclick="goHome()">Go Home</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="hint-toast" id="hintToast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
